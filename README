@@ -1,3 +1,7 @@
+SimpleXmlArchiver README
+
+Check the project wiki on GitHub for the latest info: https://github.com/NLxAROSA/SimpleXmlArchiver/wiki
+
 The interesting class here is SimpleArchiver. It has two methods:
 
 `+(NSString *)objectToXml:(id)objectToEncode;`
