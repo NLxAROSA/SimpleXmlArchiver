@@ -1,5 +1,5 @@
 //
-//  AppDelegate.h
+//  Constants.h
 //  SimpleXMLArchiver
 //
 //  Copyright (c) 2012 Lars Rosenquist. All rights reserved.
@@ -17,14 +17,16 @@
 //  limitations under the License.
 //
 
-#import <UIKit/UIKit.h>
+#ifndef SimpleXMLArchiver_Constants_h
+#define SimpleXMLArchiver_Constants_h
 
-@class ViewController;
+#define ATTRIBUTE_TYPE @"type"
+#define ATTRIBUTE_ENCLOSING_TYPE @"enclosingType"
+#define MUTABLE_ARRAY_TYPE @"NSMutableArray"
+#define STRING_TYPE @"NSString"
+#define NUMBER_TYPE @"NSNumber"
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
+#define XPATH_START @"//"
+#define XPATH_NODE_SEPARATOR @"/"
 
-@property (strong, nonatomic) UIWindow *window;
-
-@property (strong, nonatomic) ViewController *viewController;
-
-@end
+#endif

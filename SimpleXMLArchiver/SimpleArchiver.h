@@ -1,5 +1,5 @@
 //
-//  AppDelegate.h
+//  SimpleArchiver.h
 //  SimpleXMLArchiver
 //
 //  Copyright (c) 2012 Lars Rosenquist. All rights reserved.
@@ -17,14 +17,19 @@
 //  limitations under the License.
 //
 
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
-@class ViewController;
+@interface SimpleArchiver : NSObject
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
+//
+//  Converts an object graph to an XML String
+//
++(NSString *)objectToXml:(id)objectToEncode;
 
-@property (strong, nonatomic) UIWindow *window;
-
-@property (strong, nonatomic) ViewController *viewController;
+//
+//  Converts an XML String back to an object graph, using the specified target
+//  class as an entry point
+//
++(id)xmlToObject:(NSString *)xmlString targetClass:(Class)targetClass;
 
 @end

@@ -1,7 +1,9 @@
 //
-//  AppDelegate.h
+//  MyParent.m
 //  SimpleXMLArchiver
 //
+//  Created by Lars Rosenquist on 16-10-12.
+//  Copyright (c) 2012 Lars Rosenquist. All rights reserved.
 //  Copyright (c) 2012 Lars Rosenquist. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,14 +19,8 @@
 //  limitations under the License.
 //
 
-#import <UIKit/UIKit.h>
+#import "MyParent.h"
 
-@class ViewController;
-
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
-
-@property (strong, nonatomic) UIWindow *window;
-
-@property (strong, nonatomic) ViewController *viewController;
+@implementation MyParent
 
 @end

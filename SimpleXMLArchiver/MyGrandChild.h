@@ -1,7 +1,8 @@
 //
-//  AppDelegate.h
+//  MyGrandChild.h
 //  SimpleXMLArchiver
 //
+//  Created by Lars Rosenquist on 16-10-12.
 //  Copyright (c) 2012 Lars Rosenquist. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,14 +18,11 @@
 //  limitations under the License.
 //
 
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
-@class ViewController;
+@interface MyGrandChild : NSObject
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
-
-@property (strong, nonatomic) UIWindow *window;
-
-@property (strong, nonatomic) ViewController *viewController;
+@property (nonatomic, retain) NSString *myName;
+@property (nonatomic, assign) int myInt;
 
 @end

@@ -18,6 +18,11 @@
 		346EC6B0162DC8A9008F5C9C /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 346EC6AF162DC8A9008F5C9C /* Default-568h@2x.png */; };
 		346EC6B3162DC8A9008F5C9C /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 346EC6B2162DC8A9008F5C9C /* ViewController.m */; };
 		346EC6B6162DC8A9008F5C9C /* ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 346EC6B4162DC8A9008F5C9C /* ViewController.xib */; };
+		346EC6BF162DC8CA008F5C9C /* SimpleArchiver.m in Sources */ = {isa = PBXBuildFile; fileRef = 346EC6BE162DC8CA008F5C9C /* SimpleArchiver.m */; };
+		346EC6C7162DC928008F5C9C /* GDataXMLNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 346EC6C6162DC928008F5C9C /* GDataXMLNode.m */; };
+		346EC6D4162DCD98008F5C9C /* MyParent.m in Sources */ = {isa = PBXBuildFile; fileRef = 346EC6D3162DCD98008F5C9C /* MyParent.m */; };
+		346EC6D7162DCDF0008F5C9C /* MyChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 346EC6D6162DCDF0008F5C9C /* MyChild.m */; };
+		346EC6DA162DCE4D008F5C9C /* MyGrandChild.m in Sources */ = {isa = PBXBuildFile; fileRef = 346EC6D9162DCE4D008F5C9C /* MyGrandChild.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +42,17 @@
 		346EC6B1162DC8A9008F5C9C /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		346EC6B2162DC8A9008F5C9C /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		346EC6B5162DC8A9008F5C9C /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController.xib; sourceTree = "<group>"; };
+		346EC6BD162DC8CA008F5C9C /* SimpleArchiver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimpleArchiver.h; sourceTree = "<group>"; };
+		346EC6BE162DC8CA008F5C9C /* SimpleArchiver.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SimpleArchiver.m; sourceTree = "<group>"; };
+		346EC6C0162DC8F1008F5C9C /* Constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
+		346EC6C5162DC928008F5C9C /* GDataXMLNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GDataXMLNode.h; sourceTree = "<group>"; };
+		346EC6C6162DC928008F5C9C /* GDataXMLNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GDataXMLNode.m; sourceTree = "<group>"; };
+		346EC6D2162DCD98008F5C9C /* MyParent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyParent.h; sourceTree = "<group>"; };
+		346EC6D3162DCD98008F5C9C /* MyParent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyParent.m; sourceTree = "<group>"; };
+		346EC6D5162DCDF0008F5C9C /* MyChild.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyChild.h; sourceTree = "<group>"; };
+		346EC6D6162DCDF0008F5C9C /* MyChild.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyChild.m; sourceTree = "<group>"; };
+		346EC6D8162DCE4D008F5C9C /* MyGrandChild.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyGrandChild.h; sourceTree = "<group>"; };
+		346EC6D9162DCE4D008F5C9C /* MyGrandChild.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyGrandChild.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +99,8 @@
 		346EC69F162DC8A9008F5C9C /* SimpleXMLArchiver */ = {
 			isa = PBXGroup;
 			children = (
+				346EC6BC162DC8B2008F5C9C /* Classes */,
+				346EC6D0162DCB8E008F5C9C /* TestData */,
 				346EC6A8162DC8A9008F5C9C /* AppDelegate.h */,
 				346EC6A9162DC8A9008F5C9C /* AppDelegate.m */,
 				346EC6B1162DC8A9008F5C9C /* ViewController.h */,
@@ -105,6 +123,39 @@
 				346EC6AF162DC8A9008F5C9C /* Default-568h@2x.png */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		346EC6BC162DC8B2008F5C9C /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				346EC6D1162DCBAD008F5C9C /* GDataXML */,
+				346EC6C0162DC8F1008F5C9C /* Constants.h */,
+				346EC6BD162DC8CA008F5C9C /* SimpleArchiver.h */,
+				346EC6BE162DC8CA008F5C9C /* SimpleArchiver.m */,
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		346EC6D0162DCB8E008F5C9C /* TestData */ = {
+			isa = PBXGroup;
+			children = (
+				346EC6D2162DCD98008F5C9C /* MyParent.h */,
+				346EC6D3162DCD98008F5C9C /* MyParent.m */,
+				346EC6D5162DCDF0008F5C9C /* MyChild.h */,
+				346EC6D6162DCDF0008F5C9C /* MyChild.m */,
+				346EC6D8162DCE4D008F5C9C /* MyGrandChild.h */,
+				346EC6D9162DCE4D008F5C9C /* MyGrandChild.m */,
+			);
+			name = TestData;
+			sourceTree = "<group>";
+		};
+		346EC6D1162DCBAD008F5C9C /* GDataXML */ = {
+			isa = PBXGroup;
+			children = (
+				346EC6C5162DC928008F5C9C /* GDataXMLNode.h */,
+				346EC6C6162DC928008F5C9C /* GDataXMLNode.m */,
+			);
+			name = GDataXML;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -176,6 +227,11 @@
 				346EC6A6162DC8A9008F5C9C /* main.m in Sources */,
 				346EC6AA162DC8A9008F5C9C /* AppDelegate.m in Sources */,
 				346EC6B3162DC8A9008F5C9C /* ViewController.m in Sources */,
+				346EC6BF162DC8CA008F5C9C /* SimpleArchiver.m in Sources */,
+				346EC6C7162DC928008F5C9C /* GDataXMLNode.m in Sources */,
+				346EC6D4162DCD98008F5C9C /* MyParent.m in Sources */,
+				346EC6D7162DCDF0008F5C9C /* MyChild.m in Sources */,
+				346EC6DA162DCE4D008F5C9C /* MyGrandChild.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -253,7 +309,9 @@
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SimpleXMLArchiver/SimpleXMLArchiver-Prefix.pch";
+				HEADER_SEARCH_PATHS = /usr/include/libxml2;
 				INFOPLIST_FILE = "SimpleXMLArchiver/SimpleXMLArchiver-Info.plist";
+				OTHER_LDFLAGS = "-lxml2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
