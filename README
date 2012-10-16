@@ -1,5 +1,5 @@
 SimpleXmlArchiver - Objective-C object graph archiving and unarchiving made easy!
 
-Instead of having to implement coding/decoding methods for every property on every object by hand, simply use the XML archiver and store that.
+Instead of having to implement coding/decoding methods for every property on every object by hand, simply use the simple XML archiver to convert your object graph(s) to XML and archive that instead.
 
 Check the project wiki on GitHub for usage and the latest info: https://github.com/NLxAROSA/SimpleXmlArchiver/wiki
