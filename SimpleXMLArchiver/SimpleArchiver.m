@@ -29,6 +29,7 @@
 //
 +(NSString *)objectToXml:(id)objectToEncode  {
     
+    // Extract the class name from the object reference to name the XML root element
     const char *objectName = class_getName([objectToEncode class]);
 	NSString *objectNameStr = [NSString stringWithUTF8String:objectName];
     
@@ -36,17 +37,20 @@
     GDataXMLNode *attribute = nil;
     
     if ([objectToEncode isKindOfClass:[NSArray class]]) {
+        // Start with an array (wraps a collection of elements)
         rootElement = [GDataXMLElement elementWithName:MUTABLE_ARRAY_TYPE];
         attribute = [GDataXMLNode attributeWithName:ATTRIBUTE_TYPE stringValue:MUTABLE_ARRAY_TYPE];
         [rootElement addAttribute:attribute];
         [SimpleArchiver encodeArray:objectToEncode element:rootElement];
     }else{
+        // Start with an actual object, encode element
         rootElement = [GDataXMLElement elementWithName:objectNameStr];
         attribute = [GDataXMLNode attributeWithName:ATTRIBUTE_TYPE stringValue:objectNameStr];
         [rootElement addAttribute:attribute];
         [SimpleArchiver encodeElement:objectToEncode parentElement:rootElement];
     }
     
+    // Create the resulting XML document and return it
     GDataXMLDocument *doc = [[GDataXMLDocument alloc]initWithRootElement:rootElement];
     NSString *result = [[[NSString alloc]initWithData:[doc XMLData] encoding:NSUTF8StringEncoding] autorelease];
     [doc release];
@@ -86,12 +90,16 @@
 // Encodes an array of objects and their properties into a GDataXMLElement
 //
 +(void)encodeArray:(id)returnId element:(GDataXMLElement *)intoElement  {
+    
+    // Create the wrapper element
     NSArray* ar = (NSArray*) returnId;
     NSEnumerator *en = [ar objectEnumerator];
     id arrayObject = nil;
     GDataXMLNode *attribute = [GDataXMLNode attributeWithName:ATTRIBUTE_TYPE stringValue:MUTABLE_ARRAY_TYPE];
     [intoElement addAttribute:attribute];
     NSString *classNameStr = nil;
+    
+    // Create the collection of elements
     while (arrayObject = [en nextObject])    {
         
         const char* className = class_getName([arrayObject class]);
@@ -103,6 +111,7 @@
         [element addAttribute:attribute];
         [intoElement addChild:element];
     }
+    // Add an attribute that describes the enclosing type
     GDataXMLNode *attribute2 = [GDataXMLNode attributeWithName:ATTRIBUTE_ENCLOSING_TYPE stringValue:classNameStr];
     [intoElement addAttribute:attribute2];
 }
@@ -118,6 +127,7 @@
     char returnType[ 256 ];
     method_getReturnType(getterMethod, returnType, 256 );
     
+    // Create a method invocation and invoke it
     NSMethodSignature* methodSignature = [[target class]
                                           instanceMethodSignatureForSelector:selector];
     NSInvocation* invocation = [NSInvocation
@@ -216,6 +226,7 @@
 //
 +(id)xmlToObject:(NSString *)xmlString targetClass:(Class)targetClass  {
     
+    // Create an XML document based on the input string
     NSError *error = [[NSError alloc]init];
     GDataXMLDocument *doc = [[GDataXMLDocument alloc]initWithXMLString:xmlString options:0 error:&error];
     GDataXMLElement *rootElement = [doc rootElement];
@@ -223,9 +234,11 @@
     [xpath appendString:rootElement.name];
     id result = nil;
     
+    // Start with an array, parse collection of elements
     if ([targetClass isSubclassOfClass:[NSArray class]])    {
         result = [self parseArray:rootElement];
     }else{
+        // Start with a single element
         const char* className = class_getName(targetClass);
         NSString* classNameStr = [NSString stringWithUTF8String:className];
         
@@ -241,6 +254,7 @@
 //
 +(id)parseElement:(GDataXMLElement *)element targetClass:(Class)targetClass rootPath:(NSString *)rootPath index:(int)index{
     
+    // Instantiate a new instance of the target class
     id newObject = [[[targetClass alloc]init] autorelease];
     
     // Inspect object for its properties
@@ -256,6 +270,7 @@
         // Convert into NSString to insert into XML
         NSString *propertyNameStr = [NSString stringWithUTF8String:propName];
         
+        // Create the xpath required to extract the value
         NSMutableString *propertyXpath = [NSMutableString stringWithString:XPATH_START];
         
         [propertyXpath appendString:rootPath];
@@ -288,11 +303,11 @@
     GDataXMLElement* ce = nil;
     int i=0;
     
+    // Parse the individual elements
     while (ce = [en nextObject])    {
         [ar insertObject:[self parseElement:ce targetClass:NSClassFromString(ce.name) rootPath:enclosingTypeString index:i] atIndex:[ar count]];
         i++;
     }
-    
     
     return ar;
 }
@@ -304,6 +319,7 @@
 //
 +(void)setPropertyValue:(NSString *)propertyName target:(id)target forElement:(GDataXMLElement *)element xPath:(NSMutableString *)xPath index:(int)index    {
     
+    // Construct the setter string
     NSString *firstChar = [[propertyName substringToIndex:1]uppercaseString];
     NSString *remainingChar = [propertyName substringFromIndex:1];
     NSMutableString *setterString = [NSMutableString stringWithString:@"set"];
@@ -320,20 +336,29 @@
     Method m = class_getInstanceMethod([target class], getter);
     char ret[256];
     method_getReturnType(m, ret, 256 );
-        
+    
+    // Create the getter method invocation and invoke it
     NSMethodSignature* getterSignature = [[target class] instanceMethodSignatureForSelector:getter];
     NSInvocation* getterInvocation = [NSInvocation invocationWithMethodSignature:getterSignature];
     [getterInvocation setSelector:getter];
     [getterInvocation invokeWithTarget:target];
     
+    // Create the setter method invocation, but invoke based on return type
     NSMethodSignature* setterSignature = [[target class] instanceMethodSignatureForSelector:setter];
     NSInvocation* setterInvocation = [NSInvocation invocationWithMethodSignature:setterSignature];
     [setterInvocation setSelector:setter];
     
     switch (ret[0]) {
             
+            // Handle in this order:
+            // 1. NSxxx types
+            // 2. Array types
+            // 3. Other object types
+            // 4. Primitive types
+            
         case '@':   {
 
+            // Object reference type, first handle NSxxx classes
             NSError *error = [[NSError alloc]init];
             NSArray *nodes = [element nodesForXPath:xPath error:&error];
             GDataXMLElement *childElement = (GDataXMLElement *)[nodes objectAtIndex:index];
@@ -376,13 +401,8 @@
             break;
         case 'c':   {
             
-            NSError *error = [[NSError alloc]init];
-            NSArray *nodes = [element nodesForXPath:xPath error:&error];
-            GDataXMLNode *node = [nodes objectAtIndex:index];
-            NSNumberFormatter * f = [[NSNumberFormatter alloc] init];
-            [f setNumberStyle:NSNumberFormatterDecimalStyle];
-            NSNumber* num = [f numberFromString:node.stringValue];
-            [f release];
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:false];
             char charValue = [num charValue];
             
             [setterInvocation setArgument:&charValue atIndex:2];
@@ -390,13 +410,8 @@
         }
             break;
         case 'i':   {
-            NSError *error = [[NSError alloc]init];
-            NSArray *nodes = [element nodesForXPath:xPath error:&error];
-            GDataXMLNode *node = [nodes objectAtIndex:index];
-            NSNumberFormatter * f = [[NSNumberFormatter alloc] init];
-            [f setNumberStyle:NSNumberFormatterDecimalStyle];
-            NSNumber* num = [f numberFromString:node.stringValue];
-            [f release];
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:false];
             int intValue = [num intValue];
             
             [setterInvocation setArgument:&intValue atIndex:2];
@@ -404,21 +419,26 @@
         }
             break;
         case 's':   {
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:false];
+            short shortValue = [num shortValue];
+            
+            [setterInvocation setArgument:&shortValue atIndex:2];
+            [setterInvocation invokeWithTarget:target];
         }
             break;
         case 'l':   {
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:false];
+            long longValue = [num longValue];
+            
+            [setterInvocation setArgument:&longValue atIndex:2];
+            [setterInvocation invokeWithTarget:target];
         }
             break;
         case 'f':   {
-            NSError *error = [[NSError alloc]init];
-            NSArray *nodes = [element nodesForXPath:xPath error:&error];
-            GDataXMLNode *node = [nodes objectAtIndex:index];
-            NSNumberFormatter * f = [[NSNumberFormatter alloc] init];
-            [f setNumberStyle:NSNumberFormatterDecimalStyle];
-            [f setDecimalSeparator:@"."];
-            
-            NSNumber* num = [f numberFromString:node.stringValue];
-            [f release];
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:true];
             float floatValue = [num floatValue];
             
             [setterInvocation setArgument:&floatValue atIndex:2];
@@ -427,13 +447,9 @@
         }
             break;
         case 'd':   {
-            NSError *error = [[NSError alloc]init];
-            NSArray *nodes = [element nodesForXPath:xPath error:&error];
-            GDataXMLNode *node = [nodes objectAtIndex:index];
-            NSNumberFormatter * f = [[NSNumberFormatter alloc] init];
-            [f setNumberStyle:NSNumberFormatterDecimalStyle];
-            NSNumber* num = [f numberFromString:node.stringValue];
-            [f release];
+            
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:false];
             double doubleValue = [num doubleValue];
             
             [setterInvocation setArgument:&doubleValue atIndex:2];
@@ -443,6 +459,37 @@
         default:
             break;
     }
+}
+
+//
+//  Extracts a node from an element for a given xpath
+//  index is used to specify which node to extract from an array type
+//
++(GDataXMLNode *)nodeForXpath:(NSString *)xPath element:(GDataXMLElement *)element index:(int)index {
+    
+    NSError *error = [[NSError alloc]init];
+    NSArray *nodes = [element nodesForXPath:xPath error:&error];
+    GDataXMLNode *node = [nodes objectAtIndex:index];
+    [error release];
+    return node;
+}
+
+//
+//  Creates an NSNumber from a GDataXMLNode
+//
++(NSNumber *)numberFromNode:(GDataXMLNode *)node hasDecimalPoint:(BOOL)hasDecimalPoint  {
+    
+    NSNumberFormatter * f = [[NSNumberFormatter alloc] init];
+    [f setNumberStyle:NSNumberFormatterDecimalStyle];
+    
+    if (hasDecimalPoint)    {
+       [f setDecimalSeparator:@"."]; 
+    }
+    
+    NSNumber* num = [f numberFromString:node.stringValue];
+    [f release];
+    
+    return num;
 }
 
 @end
