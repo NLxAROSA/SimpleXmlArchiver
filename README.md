@@ -37,3 +37,4 @@ Unarchive the NSString from your archive using NSKeyedUnarchiver, then pass it t
 1. Add the following to 'Header Search Paths' (Debug is enough): /usr/include/libxml2
 2. Add the following to 'Other Linker Flags' (Debug is enough): -lxml2
 3. Add the Constants, SimpleArchiver and GDataXMLNode classes to your project
+4. Success!
