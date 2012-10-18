@@ -50,6 +50,7 @@
     MyParent *parent = [[MyParent alloc]init];
     parent.myName = @"I am the parent";
     parent.myInt = 42;
+    parent.myNumber = [NSNumber numberWithInt:1234];
     
     MyChild *child = [[MyChild alloc]init];
     child.myName = @"I am the child";

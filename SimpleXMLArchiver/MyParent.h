@@ -26,5 +26,6 @@
 @property (nonatomic, retain) NSString *myName;
 @property (nonatomic, assign) int myInt;
 @property (nonatomic, retain) MyChild *myChild;
+@property (nonatomic, retain) NSNumber *myNumber;
 
 @end
