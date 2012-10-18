@@ -19,8 +19,6 @@ The interesting class here is SimpleArchiver. It has two methods:
 
 This method takes any object tree and serializes it to an autoreleased XML String.
 
-# Usage:
-
 `NSString *result = [SimpleArchiver objectToXml:myObjectRef];`
 
 Archive the resulting NSString using NSKeyedArchiver (only one key necessary! :))
