@@ -22,6 +22,16 @@
 #import "GDataXMLNode.h"
 #import "objc/runtime.h"
 
+#define ATTRIBUTE_TYPE @"type"
+#define ATTRIBUTE_ENCLOSING_TYPE @"enclosingType"
+#define MUTABLE_ARRAY_TYPE @"NSMutableArray"
+#define STRING_TYPE @"NSString"
+#define NUMBER_TYPE @"NSNumber"
+
+#define XPATH_START @"//"
+#define XPATH_NODE_SEPARATOR @"/"
+#define EMPTY_STRING @""
+
 @implementation SimpleArchiver
 
 //
@@ -78,12 +88,14 @@
         
         // Convert property name into selector
         SEL selector = sel_registerName(propName);
-
+        
         // Execute the selector to get the property, and store it in the XML tree (deep)
         [self getPropertyValue:selector target:objectToEncode intoElement:element];
         [parentElement addChild:element];
-
+        
     }
+    
+    free(properties);
 }
 
 //
@@ -131,12 +143,12 @@
     NSMethodSignature* methodSignature = [[target class]
                                           instanceMethodSignatureForSelector:selector];
     NSInvocation* invocation = [NSInvocation
-                                  invocationWithMethodSignature:methodSignature];
+                                invocationWithMethodSignature:methodSignature];
     [invocation setSelector:selector];
     [invocation invokeWithTarget:target];
     
     GDataXMLElement *attribute = nil;
-
+    
     // Add XML node based on type of property
     switch (returnType[0]) {
             
@@ -228,7 +240,7 @@
 +(id)xmlToObject:(NSString *)xmlString targetClass:(Class)targetClass  {
     
     // Create an XML document based on the input string
-    NSError *error = [[NSError alloc]init];
+    NSError *error = [[[NSError alloc]init]autorelease];
     GDataXMLDocument *doc = [[GDataXMLDocument alloc]initWithXMLString:xmlString options:0 error:&error];
     GDataXMLElement *rootElement = [doc rootElement];
     NSMutableString* xpath = [NSMutableString stringWithString:XPATH_START];
@@ -237,13 +249,13 @@
     
     // Start with an array, parse collection of elements
     if ([targetClass isSubclassOfClass:[NSArray class]])    {
-        result = [self parseArray:rootElement rootPath:@""];
+        result = [self parseArray:rootElement rootPath:EMPTY_STRING];
     }else{
         // Start with a single element
         const char* className = class_getName(targetClass);
         NSString* classNameStr = [NSString stringWithUTF8String:className];
         
-        result = [self parseElement:rootElement targetClass:targetClass rootPath:classNameStr];
+        result = [self parseElement:rootElement targetClass:targetClass rootPath:classNameStr index:0];
     }
     
     [doc release];
@@ -253,7 +265,7 @@
 //
 //  Parses the specified GDataXMLElement back into an object structure using the specified target class and XPath
 //
-+(id)parseElement:(GDataXMLElement *)element targetClass:(Class)targetClass rootPath:(NSString *)rootPath   {
++(id)parseElement:(GDataXMLElement *)element targetClass:(Class)targetClass rootPath:(NSString *)rootPath index:(int)index{
     
     // Instantiate a new instance of the target class
     id newObject = [[[targetClass alloc]init] autorelease];
@@ -270,7 +282,7 @@
         NSString *propertyNameStr = [NSString stringWithUTF8String:propName];
         // Create the xpath required to extract the value
         
-        NSMutableString *propertyXpath = [NSMutableString stringWithString:@""];
+        NSMutableString *propertyXpath = [NSMutableString stringWithString:EMPTY_STRING];
         
         if (![rootPath hasPrefix:XPATH_START]) {
             [propertyXpath appendString:XPATH_START];
@@ -280,8 +292,10 @@
         [propertyXpath appendString:XPATH_NODE_SEPARATOR];
         [propertyXpath appendString:propertyNameStr];
         
-        [self setPropertyValue:propertyNameStr target:newObject forElement:element xPath:propertyXpath];
+        [self setPropertyValue:propertyNameStr target:newObject forElement:element xPath:propertyXpath index:index];
     }
+    
+    free(properties);
     
     return newObject;
 }
@@ -296,7 +310,7 @@
     NSString* enclosingTypeString = [enclosingTypeAttribute stringValue];
     NSError *error = [[NSError alloc]init];
     NSMutableString *xpath = [NSMutableString stringWithString:rootPath];
-    if (![xpath isEqualToString:@""]) {
+    if (![xpath isEqualToString:EMPTY_STRING]) {
         [xpath appendString:XPATH_NODE_SEPARATOR];
     }else{
         [xpath appendString:XPATH_START];
@@ -304,6 +318,7 @@
     [xpath appendString:enclosingTypeString];
     
     NSArray *childNodes = [element nodesForXPath:xpath error:&error];
+    [error release];
     
     NSMutableArray* ar = [[[NSMutableArray alloc]initWithCapacity:[childNodes count]]autorelease];
     NSEnumerator *en = [childNodes objectEnumerator];
@@ -313,11 +328,11 @@
     // Parse the individual elements
     while (ce = [en nextObject])    {
         
-        NSMutableString *childPath = [NSMutableString stringWithString:xpath];        
+        NSMutableString *childPath = [NSMutableString stringWithString:xpath];
         NSString *elementString = [NSString stringWithFormat:@"[%i]", i+1];
         [childPath appendString:elementString];
         
-        [ar insertObject:[self parseElement:ce targetClass:NSClassFromString(ce.name) rootPath:childPath] atIndex:[ar count]];
+        [ar insertObject:[self parseElement:ce targetClass:NSClassFromString(ce.name) rootPath:childPath index:i] atIndex:[ar count]];
         i++;
     }
     
@@ -329,7 +344,7 @@
 //  Extend this if you wish to add extra property types
 //  Note: this still misses some property types as well as implementations
 //
-+(void)setPropertyValue:(NSString *)propertyName target:(id)target forElement:(GDataXMLElement *)element xPath:(NSMutableString *)xPath {
++(void)setPropertyValue:(NSString *)propertyName target:(id)target forElement:(GDataXMLElement *)element xPath:(NSMutableString *)xPath index:(int)index    {
     
     // Construct getter and setter selectors
     NSString *firstChar = [[propertyName substringToIndex:1]uppercaseString];
@@ -337,10 +352,10 @@
     NSMutableString *setterString = [NSMutableString stringWithString:@"set"];
     [setterString appendString:firstChar];
     [setterString appendString:remainingChar];
-    [setterString appendString:@":"];    
+    [setterString appendString:@":"];
     SEL getter = sel_registerName([propertyName cStringUsingEncoding:NSUTF8StringEncoding]);
     SEL setter = sel_registerName([setterString UTF8String]);
-
+    
     // Get the return type
     Method m = class_getInstanceMethod([target class], getter);
     char ret[256];
@@ -369,10 +384,12 @@
             // Object type
             NSError *error = [[NSError alloc]init];
             NSArray *nodes = [element nodesForXPath:xPath error:&error];
+            [error release];
             GDataXMLElement *childElement = (GDataXMLElement *)[nodes objectAtIndex:0];
             GDataXMLNode *attribute = [childElement attributeForName:ATTRIBUTE_TYPE];
             NSString* classNameString = [attribute stringValue];
             Class clazz = NSClassFromString(classNameString);
+            
             
             if (clazz == [NSString class])   {
                 NSString* str = childElement.stringValue;
@@ -388,7 +405,7 @@
                 if (attribute != nil)   {
                     NSString* classNameString = [attribute stringValue];
                     Class cls = NSClassFromString(classNameString);
-                    id child = [self parseElement:(GDataXMLElement*)childElement targetClass:cls rootPath:propertyName];
+                    id child = [self parseElement:(GDataXMLElement*)childElement targetClass:cls rootPath:propertyName index:0];
                     [target performSelector:setter withObject:child];
                 }
             }
@@ -437,7 +454,7 @@
             
             [setterInvocation setArgument:&floatValue atIndex:2];
             [setterInvocation invokeWithTarget:target];
-
+            
         }
             break;
         case 'd':   {
@@ -462,8 +479,8 @@
     
     NSError *error = [[NSError alloc]init];
     NSArray *nodes = [element nodesForXPath:xPath error:&error];
-    GDataXMLNode *node = [nodes objectAtIndex:index];
     [error release];
+    GDataXMLNode *node = [nodes objectAtIndex:index];
     return node;
 }
 
@@ -476,7 +493,7 @@
     [f setNumberStyle:NSNumberFormatterDecimalStyle];
     
     if (hasDecimalPoint)    {
-       [f setDecimalSeparator:@"."]; 
+        [f setDecimalSeparator:@"."];
     }
     
     NSNumber* num = [f numberFromString:node.stringValue];
