@@ -243,7 +243,7 @@
         const char* className = class_getName(targetClass);
         NSString* classNameStr = [NSString stringWithUTF8String:className];
         
-        result = [self parseElement:rootElement targetClass:targetClass rootPath:classNameStr index:0];
+        result = [self parseElement:rootElement targetClass:targetClass rootPath:classNameStr];
     }
     
     [doc release];
@@ -253,7 +253,7 @@
 //
 //  Parses the specified GDataXMLElement back into an object structure using the specified target class and XPath
 //
-+(id)parseElement:(GDataXMLElement *)element targetClass:(Class)targetClass rootPath:(NSString *)rootPath index:(int)index{
++(id)parseElement:(GDataXMLElement *)element targetClass:(Class)targetClass rootPath:(NSString *)rootPath   {
     
     // Instantiate a new instance of the target class
     id newObject = [[[targetClass alloc]init] autorelease];
@@ -280,7 +280,7 @@
         [propertyXpath appendString:XPATH_NODE_SEPARATOR];
         [propertyXpath appendString:propertyNameStr];
         
-        [self setPropertyValue:propertyNameStr target:newObject forElement:element xPath:propertyXpath index:index];
+        [self setPropertyValue:propertyNameStr target:newObject forElement:element xPath:propertyXpath];
     }
     
     return newObject;
@@ -297,13 +297,11 @@
     NSError *error = [[NSError alloc]init];
     NSMutableString *xpath = [NSMutableString stringWithString:rootPath];
     if (![xpath isEqualToString:@""]) {
-        [xpath appendString:@"/"];
+        [xpath appendString:XPATH_NODE_SEPARATOR];
     }else{
         [xpath appendString:XPATH_START];
     }
     [xpath appendString:enclosingTypeString];
-    
-    NSLog(@"Parsing array for xpath %@", xpath);
     
     NSArray *childNodes = [element nodesForXPath:xpath error:&error];
     
@@ -319,9 +317,7 @@
         NSString *elementString = [NSString stringWithFormat:@"[%i]", i+1];
         [childPath appendString:elementString];
         
-        NSLog(@"Parsing element for xpath %@", childPath);
-        
-        [ar insertObject:[self parseElement:ce targetClass:NSClassFromString(ce.name) rootPath:childPath index:i] atIndex:[ar count]];
+        [ar insertObject:[self parseElement:ce targetClass:NSClassFromString(ce.name) rootPath:childPath] atIndex:[ar count]];
         i++;
     }
     
@@ -333,7 +329,7 @@
 //  Extend this if you wish to add extra property types
 //  Note: this still misses some property types as well as implementations
 //
-+(void)setPropertyValue:(NSString *)propertyName target:(id)target forElement:(GDataXMLElement *)element xPath:(NSMutableString *)xPath index:(int)index    {
++(void)setPropertyValue:(NSString *)propertyName target:(id)target forElement:(GDataXMLElement *)element xPath:(NSMutableString *)xPath {
     
     // Construct getter and setter selectors
     NSString *firstChar = [[propertyName substringToIndex:1]uppercaseString];
@@ -392,7 +388,7 @@
                 if (attribute != nil)   {
                     NSString* classNameString = [attribute stringValue];
                     Class cls = NSClassFromString(classNameString);
-                    id child = [self parseElement:(GDataXMLElement*)childElement targetClass:cls rootPath:propertyName index:0];
+                    id child = [self parseElement:(GDataXMLElement*)childElement targetClass:cls rootPath:propertyName];
                     [target performSelector:setter withObject:child];
                 }
             }
@@ -463,8 +459,6 @@
 //  index is used to specify which node to extract from an array type
 //
 +(GDataXMLNode *)nodeForXpath:(NSString *)xPath element:(GDataXMLElement *)element index:(int)index {
-    
-    NSLog(@"Parsing node for xpath %@", xPath);
     
     NSError *error = [[NSError alloc]init];
     NSArray *nodes = [element nodesForXPath:xPath error:&error];
