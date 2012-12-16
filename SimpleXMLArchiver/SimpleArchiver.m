@@ -237,7 +237,7 @@
     
     // Start with an array, parse collection of elements
     if ([targetClass isSubclassOfClass:[NSArray class]])    {
-        result = [self parseArray:rootElement];
+        result = [self parseArray:rootElement rootPath:@""];
     }else{
         // Start with a single element
         const char* className = class_getName(targetClass);
@@ -269,7 +269,12 @@
         // Convert into NSString to insert into XML
         NSString *propertyNameStr = [NSString stringWithUTF8String:propName];
         // Create the xpath required to extract the value
-        NSMutableString *propertyXpath = [NSMutableString stringWithString:XPATH_START];
+        
+        NSMutableString *propertyXpath = [NSMutableString stringWithString:@""];
+        
+        if (![rootPath hasPrefix:XPATH_START]) {
+            [propertyXpath appendString:XPATH_START];
+        }
         
         [propertyXpath appendString:rootPath];
         [propertyXpath appendString:XPATH_NODE_SEPARATOR];
@@ -284,14 +289,22 @@
 //
 // Parses an array back into its object structure
 //
-+(NSMutableArray *)parseArray:(GDataXMLElement *)element    {
++(NSMutableArray *)parseArray:(GDataXMLElement *)element rootPath:(NSString *)rootPath    {
     
     // Array type, parse elements of array
     GDataXMLNode *enclosingTypeAttribute = [element attributeForName:ATTRIBUTE_ENCLOSING_TYPE];
     NSString* enclosingTypeString = [enclosingTypeAttribute stringValue];
     NSError *error = [[NSError alloc]init];
-    NSMutableString *xpath = [NSMutableString stringWithString:XPATH_START];
+    NSMutableString *xpath = [NSMutableString stringWithString:rootPath];
+    if (![xpath isEqualToString:@""]) {
+        [xpath appendString:@"/"];
+    }else{
+        [xpath appendString:XPATH_START];
+    }
     [xpath appendString:enclosingTypeString];
+    
+    NSLog(@"Parsing array for xpath %@", xpath);
+    
     NSArray *childNodes = [element nodesForXPath:xpath error:&error];
     
     NSMutableArray* ar = [[[NSMutableArray alloc]initWithCapacity:[childNodes count]]autorelease];
@@ -301,7 +314,14 @@
     int i=0;
     // Parse the individual elements
     while (ce = [en nextObject])    {
-        [ar insertObject:[self parseElement:ce targetClass:NSClassFromString(ce.name) rootPath:enclosingTypeString index:i] atIndex:[ar count]];
+        
+        NSMutableString *childPath = [NSMutableString stringWithString:xpath];        
+        NSString *elementString = [NSString stringWithFormat:@"[%i]", i+1];
+        [childPath appendString:elementString];
+        
+        NSLog(@"Parsing element for xpath %@", childPath);
+        
+        [ar insertObject:[self parseElement:ce targetClass:NSClassFromString(ce.name) rootPath:childPath index:i] atIndex:[ar count]];
         i++;
     }
     
@@ -353,7 +373,7 @@
             // Object type
             NSError *error = [[NSError alloc]init];
             NSArray *nodes = [element nodesForXPath:xPath error:&error];
-            GDataXMLElement *childElement = (GDataXMLElement *)[nodes objectAtIndex:index];
+            GDataXMLElement *childElement = (GDataXMLElement *)[nodes objectAtIndex:0];
             GDataXMLNode *attribute = [childElement attributeForName:ATTRIBUTE_TYPE];
             NSString* classNameString = [attribute stringValue];
             Class clazz = NSClassFromString(classNameString);
@@ -365,7 +385,7 @@
                 NSNumber *num = [SimpleArchiver numberFromNode:childElement hasDecimalPoint:false];
                 [target performSelector:setter withObject:num];
             }else if (clazz == [NSMutableArray class]){
-                NSMutableArray* ar = [self parseArray:childElement];
+                NSMutableArray* ar = [self parseArray:childElement rootPath:xPath];
                 [target performSelector:setter withObject:ar];
             }else{
                 // Some other object, parse XML further
@@ -379,7 +399,7 @@
         }
             break;
         case 'c':   {
-            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:0];
             NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:false];
             char charValue = [num charValue];
             
@@ -388,7 +408,7 @@
         }
             break;
         case 'i':   {
-            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:0];
             NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:false];
             int intValue = [num intValue];
             
@@ -397,7 +417,7 @@
         }
             break;
         case 's':   {
-            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:0];
             NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:false];
             short shortValue = [num shortValue];
             
@@ -406,7 +426,7 @@
         }
             break;
         case 'l':   {
-            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:0];
             NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:false];
             long longValue = [num longValue];
             
@@ -415,7 +435,7 @@
         }
             break;
         case 'f':   {
-            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:0];
             NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:true];
             float floatValue = [num floatValue];
             
@@ -425,7 +445,7 @@
         }
             break;
         case 'd':   {
-            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:index];
+            GDataXMLNode *node = [SimpleArchiver nodeForXpath:xPath element:element index:0];
             NSNumber *num = [SimpleArchiver numberFromNode:node hasDecimalPoint:false];
             double doubleValue = [num doubleValue];
             
@@ -443,6 +463,8 @@
 //  index is used to specify which node to extract from an array type
 //
 +(GDataXMLNode *)nodeForXpath:(NSString *)xPath element:(GDataXMLElement *)element index:(int)index {
+    
+    NSLog(@"Parsing node for xpath %@", xPath);
     
     NSError *error = [[NSError alloc]init];
     NSArray *nodes = [element nodesForXPath:xPath error:&error];

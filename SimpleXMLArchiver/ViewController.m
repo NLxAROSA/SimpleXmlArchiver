@@ -55,9 +55,14 @@
     MyChild *child = [[MyChild alloc]init];
     child.myName = @"I am the child";
     child.myFloat = 43.0f;
-    
-    parent.myChild = child;
-    [child release];
+
+    MyChild *child2 = [[MyChild alloc]init];
+    child2.myName = @"I am the second child";
+    child2.myFloat = 48.0f;
+
+    NSMutableArray *children = [[NSMutableArray alloc]initWithObjects:child, child2, nil];
+    parent.myChildren = children;
+    [children release];
 
     MyGrandChild *grandChild1 = [[MyGrandChild alloc]init];
     grandChild1.myName = @"I am the first grandchild";
@@ -66,14 +71,26 @@
     MyGrandChild *grandChild2 = [[MyGrandChild alloc]init];
     grandChild2.myName = @"I am the second grandchild";
     grandChild2.myInt = 45;
+
+    MyGrandChild *grandChild3 = [[MyGrandChild alloc]init];
+    grandChild3.myName = @"I am the third grandchild";
+    grandChild3.myInt = 46;
     
+    MyGrandChild *grandChild4 = [[MyGrandChild alloc]init];
+    grandChild4.myName = @"I am the fourth grandchild";
+    grandChild4.myInt = 47;
+
     NSMutableArray *grandChildren = [[NSMutableArray alloc]initWithObjects:grandChild1, grandChild2, nil];
-    
+    NSMutableArray *grandChildren2 = [[NSMutableArray alloc]initWithObjects:grandChild3, grandChild4, nil];
     child.myArrayOfGrandChildren = grandChildren;
+    child2.myArrayOfGrandChildren = grandChildren2;
     
     [grandChild1 release];
     [grandChild2 release];
+    [grandChild3 release];
+    [grandChild4 release];
     [grandChildren release];
+    [grandChildren2 release];
     
     self.myParent = parent;
     
