@@ -325,14 +325,12 @@
     
     GDataXMLElement* ce = nil;
     int i=0;
+    
     // Parse the individual elements
     while (ce = [en nextObject])    {
-        
-        NSMutableString *childPath = [NSMutableString stringWithString:xpath];
-        NSString *elementString = [NSString stringWithFormat:@"[%i]", i+1];
-        [childPath appendString:elementString];
-        
-        [ar insertObject:[self parseElement:ce targetClass:NSClassFromString(ce.name) rootPath:childPath index:i] atIndex:[ar count]];
+        // For arrays, treat every element as an individual document. This will speed up parsing of
+        // individual elements
+        [ar insertObject:[self xmlToObject:ce.XMLString targetClass:NSClassFromString(ce.name)] atIndex:i];
         i++;
     }
     
@@ -405,7 +403,8 @@
                 if (attribute != nil)   {
                     NSString* classNameString = [attribute stringValue];
                     Class cls = NSClassFromString(classNameString);
-                    id child = [self parseElement:(GDataXMLElement*)childElement targetClass:cls rootPath:propertyName index:0];
+                    
+                    id child = [self parseElement:(GDataXMLElement*)childElement targetClass:cls rootPath:xPath index:0];
                     [target performSelector:setter withObject:child];
                 }
             }
