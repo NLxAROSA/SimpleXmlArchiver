@@ -36,3 +36,8 @@ Unarchive the NSString from your archive using NSKeyedUnarchiver, then pass it t
 2. Add the following to 'Other Linker Flags' (Debug is enough): -lxml2
 3. Add the Constants, SimpleArchiver and GDataXMLNode classes to your project
 4. Success!
+
+# Known limitations/TODO's
+
+1. Cyclic references are not yet supported.
+2. Deserialization performance could be better.
